@@ -55,7 +55,6 @@ var CatalogueQuery = `
 		id
 		name
 		type
-		path
 	}
 `
 
@@ -85,7 +84,6 @@ func normaliseCatalogueItems(respData CatalogueResponse) []types.CatalogueItem {
 			ID:   item.ID,
 			Name: item.Name,
 			Type: item.Type,
-			Path: item.Path,
 		}
 		catalogueItems = append(catalogueItems, catalogueItem)
 
@@ -94,7 +92,6 @@ func normaliseCatalogueItems(respData CatalogueResponse) []types.CatalogueItem {
 				ID:   item2.ID,
 				Name: item2.Name,
 				Type: item2.Type,
-				Path: item2.Path,
 			}
 			catalogueItems = append(catalogueItems, catalogueItem)
 
@@ -103,7 +100,6 @@ func normaliseCatalogueItems(respData CatalogueResponse) []types.CatalogueItem {
 					ID:   item3.ID,
 					Name: item3.Name,
 					Type: item3.Type,
-					Path: item3.Path,
 				}
 				catalogueItems = append(catalogueItems, catalogueItem)
 			}
