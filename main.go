@@ -5,8 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
+	"github.com/crystallizeapi/crystallize-elasticsearch-example/server"
 	"github.com/crystallizeapi/crystallize-elasticsearch-example/tasks"
 )
 
@@ -34,9 +36,11 @@ func runTask(taskName *string, tenant *string) error {
 }
 
 func runServer() {
-	// http.HandleFunc("/search", server.ServeHTTP)
+	http.HandleFunc("/api/index", server.HandleIndex)
+	http.HandleFunc("/api/search", server.HandleSearch)
 
-	// http.ListenAndServe(":8090", nil)
+	fmt.Printf("Listening on http://localhost:8090\n")
+	http.ListenAndServe(":8090", nil)
 }
 
 func main() {

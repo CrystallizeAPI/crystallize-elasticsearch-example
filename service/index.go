@@ -55,6 +55,18 @@ func (i *IndexService) IndexExists(ctx context.Context, client *elastic.Client, 
 	return exists, nil
 }
 
+// Index indexes a single CatalogueItem.
+func (i *IndexService) Index(ctx context.Context, client *elastic.Client, item types.CatalogueItem) error {
+	_, err := client.Index().
+		Index(CatalogueIndex).
+		Id(item.ID).
+		BodyJson(item).
+		Refresh("wait_for").
+		Do(ctx)
+
+	return err
+}
+
 // BulkIndex indexes CatalogueItems in bulk.
 func (i *IndexService) BulkIndex(ctx context.Context, client *elastic.Client, items []types.CatalogueItem) error {
 	// Build bulk index request
