@@ -52,7 +52,35 @@ go run main.go
 
 #### `POST /api/index`
 
+Set up a webhook in Crystallize to POST to this endpoint with an item query as
+the body. For example:
+
+```graphql
+query GET_ITEM_DETAILS($id: ID!, $language: String!) {
+  item(id: $id, language: $language) {
+    id
+    name
+    type
+  }
+}
+```
+
 #### `GET /api/search`
+
+You can query on any fields that have been indexed in ElasticSearch by appending
+them to the query string. Some examples:
+
+Retrieve items matching multiple ids:
+
+```
+/api/search?id=123&id=456
+```
+
+Retrieve items matching a name and type:
+
+```
+/api/search?name=cheese&type=product
+```
 
 ### Tasks
 
