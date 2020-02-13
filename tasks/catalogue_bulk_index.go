@@ -43,6 +43,9 @@ var CatalogueQuery = `
 				...item
 				children {
 					...item
+					children {
+						...item
+					}
 				}
 			}
 		}
@@ -65,6 +68,9 @@ type CatalogueResponse struct {
 			types.CatalogueItem
 			Children []struct {
 				types.CatalogueItem
+				Children []struct {
+					types.CatalogueItem
+				}
 			}
 		}
 	}
@@ -91,6 +97,16 @@ func normaliseCatalogueItems(respData CatalogueResponse) []types.CatalogueItem {
 				Path: item2.Path,
 			}
 			catalogueItems = append(catalogueItems, catalogueItem)
+
+			for _, item3 := range item2.Children {
+				catalogueItem = types.CatalogueItem{
+					ID:   item3.ID,
+					Name: item3.Name,
+					Type: item3.Type,
+					Path: item3.Path,
+				}
+				catalogueItems = append(catalogueItems, catalogueItem)
+			}
 		}
 	}
 
