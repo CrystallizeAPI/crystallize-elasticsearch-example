@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/crystallizeapi/crystallize-elasticsearch-example/service"
 	"github.com/crystallizeapi/crystallize-elasticsearch-example/types"
@@ -16,6 +17,7 @@ type Item struct {
 }
 
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
+	begin := time.Now()
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -45,8 +47,8 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("%+v\n", item)
-
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
+
+	fmt.Printf("Indexed 1 item in %d ms\n", time.Since(begin).Milliseconds())
 }

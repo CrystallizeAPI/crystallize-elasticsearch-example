@@ -3,13 +3,16 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/crystallizeapi/crystallize-elasticsearch-example/service"
 	"github.com/olivere/elastic/v7"
 )
 
 func HandleSearch(w http.ResponseWriter, r *http.Request) {
+	begin := time.Now()
 	qs := r.URL.Query()
 
 	var queries []elastic.Query
@@ -49,6 +52,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Printf("Found %d matching items in %dms\n", len(res), time.Since(begin).Milliseconds())
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)
 }
