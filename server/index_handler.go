@@ -3,39 +3,49 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/crystallizeapi/crystallize-elasticsearch-example/service"
 	"github.com/crystallizeapi/crystallize-elasticsearch-example/types"
 )
 
+type Item struct {
+	Item types.CatalogueItem `json:"item"`
+}
+
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	var item types.CatalogueItem
+	var item Item
 	if err = json.Unmarshal(body, &item); err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	ctx := context.Background()
 	client, err := service.CreateClient()
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	indexService := service.IndexService{}
-	indexService.Index(ctx, client, item)
+	indexService.Index(ctx, client, item.Item)
 
-	res, err := json.Marshal(item)
+	res, err := json.Marshal(item.Item)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	fmt.Printf("%+v\n", item)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
