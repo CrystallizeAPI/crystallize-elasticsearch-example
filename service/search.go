@@ -2,15 +2,14 @@ package service
 
 import (
 	"context"
-	"reflect"
 
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/types"
 	"github.com/olivere/elastic/v7"
 )
 
+// SearchService holds all of the necessary methods for searching an index.
 type SearchService struct{}
 
-func (s *SearchService) Search(ctx context.Context, client *elastic.Client, query *elastic.BoolQuery) ([]types.CatalogueItem, error) {
+func (s *SearchService) Search(ctx context.Context, client *elastic.Client, query *elastic.BoolQuery) ([]interface{}, error) {
 	searchResult, err := client.Search().
 		Index(CatalogueIndex).
 		Query(query).
@@ -20,13 +19,10 @@ func (s *SearchService) Search(ctx context.Context, client *elastic.Client, quer
 		return nil, err
 	}
 
-	var catalogueItems []types.CatalogueItem
-	var ci types.CatalogueItem
-	for _, item := range searchResult.Each(reflect.TypeOf(ci)) {
-		if t, ok := item.(types.CatalogueItem); ok {
-			catalogueItems = append(catalogueItems, t)
-		}
+	var items []interface{}
+	for _, hit := range searchResult.Hits.Hits {
+		items = append(items, hit.Source)
 	}
 
-	return catalogueItems, nil
+	return items, nil
 }

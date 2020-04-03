@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/crystallizeapi/crystallize-elasticsearch-example/service"
@@ -11,9 +12,9 @@ import (
 )
 
 type CatalogueBulkIndexTask struct {
-	catalogueItems []types.CatalogueItem
-	client         *elastic.Client
-	tenant         string
+	items  []types.ElasticProduct
+	client *elastic.Client
+	tenant string
 }
 
 // NewCatalogueBulkIndexTask creates a new CatalogueBulkIndexTask.
@@ -28,9 +29,9 @@ func NewCatalogueBulkIndexTask(tenant string) (*CatalogueBulkIndexTask, error) {
 	}
 
 	return &CatalogueBulkIndexTask{
-		catalogueItems: []types.CatalogueItem{},
-		client:         client,
-		tenant:         tenant,
+		items:  []types.ElasticProduct{},
+		client: client,
+		tenant: tenant,
 	}, nil
 }
 
@@ -41,10 +42,21 @@ var CatalogueQuery = `
 		catalogue(path: "/", language: "en") {
 			children {
 				...item
+				...product
 				children {
 					...item
+					...product
 					children {
 						...item
+						...product
+						children {
+							...item
+							...product
+							children {
+							...item
+							...product
+						}
+						}
 					}
 				}
 			}
@@ -54,79 +66,137 @@ var CatalogueQuery = `
 	fragment item on Item {
 		id
 		name
+		path
 		type
+		topics {
+			id
+			name
+			parentId
+		}
+	}
+
+	fragment product on Product {
+		variants {
+			id
+			name
+			sku
+			price
+			stock
+			isDefault
+			attributes {
+				attribute
+				value
+			}
+			images {
+				key
+				url
+				variants {
+					key
+					url
+					width
+				}
+			}
+		}
 	}
 `
 
-// CatalogueResponse represents the GraphQL response of the catalogue query.
-// In this example it is nested to the second layer of children, but it can be
-// nested as much as necessary based on the CatalogueQuery.
-type CatalogueResponse struct {
-	Catalogue struct {
-		Children []struct {
-			types.CatalogueItem
-			Children []struct {
-				types.CatalogueItem
-				Children []struct {
-					types.CatalogueItem
-				}
-			}
+func getImageVariants(image types.Image) []types.ImageVariant {
+	imageVariants := []types.ImageVariant{}
+
+	for _, variant := range image.Variants {
+		if variant.Width == 200 || variant.Width == 500 {
+			imageVariants = append(imageVariants, variant)
 		}
 	}
+
+	return imageVariants
 }
 
-// normaliseCatalogueItems normalises the response data into a flat array of items.
-func normaliseCatalogueItems(respData CatalogueResponse) []types.CatalogueItem {
-	var catalogueItems []types.CatalogueItem
+func getImages(variant types.ProductVariant) *[]types.Image {
+	if variant.Images != nil && len(*variant.Images) > 0 {
+		images := *variant.Images
+		imageVariants := getImageVariants(images[0])
+		return &[]types.Image{types.Image{
+			URL:      images[0].URL,
+			Key:      images[0].Key,
+			Variants: imageVariants,
+		}}
+	}
+	return nil
+}
 
-	for _, item := range respData.Catalogue.Children {
-		catalogueItem := types.CatalogueItem{
-			ID:   item.ID,
-			Name: item.Name,
-			Type: item.Type,
+func normaliseChildren(children []interface{}) ([]types.ElasticProduct, error) {
+	var items []types.ElasticProduct
+
+	for _, item := range children {
+		catalogueItem := item.(map[string]interface{})
+		jsonBody, err := json.Marshal(catalogueItem)
+		if err != nil {
+			return nil, err
 		}
-		catalogueItems = append(catalogueItems, catalogueItem)
 
-		for _, item2 := range item.Children {
-			catalogueItem = types.CatalogueItem{
-				ID:   item2.ID,
-				Name: item2.Name,
-				Type: item2.Type,
+		if catalogueItem["type"] == "product" {
+			product := types.Product{}
+			if err := json.Unmarshal(jsonBody, &product); err != nil {
+				return nil, err
 			}
-			catalogueItems = append(catalogueItems, catalogueItem)
-
-			for _, item3 := range item2.Children {
-				catalogueItem = types.CatalogueItem{
-					ID:   item3.ID,
-					Name: item3.Name,
-					Type: item3.Type,
+			for _, variant := range product.Variants {
+				productVariants := []types.ProductVariant{}
+				for _, v := range product.Variants {
+					images := getImages(v)
+					v.Images = images
+					productVariants = append(productVariants, v)
 				}
-				catalogueItems = append(catalogueItems, catalogueItem)
+
+				images := getImages(variant)
+				variant.Images = images
+				product.Variants = productVariants
+
+				elasticProduct := types.ElasticProduct{
+					Variant: variant,
+					Product: product,
+				}
+				items = append(items, elasticProduct)
 			}
+		}
+
+		if catalogueItem["children"] != nil {
+			childItems, err := normaliseChildren(catalogueItem["children"].([]interface{}))
+			if err != nil {
+				return nil, err
+			}
+
+			items = append(items, childItems...)
 		}
 	}
 
-	return catalogueItems
+	return items, nil
 }
 
 // Setup fetches the catalogue items to be indexed from Crystallize's catalogue
 // API via GraphQL.
 func (t *CatalogueBulkIndexTask) Setup(ctx context.Context) error {
-	apiUrl := fmt.Sprintf("https://api.crystallize.com/%s/catalogue", t.tenant)
-	graphqlClient := graphql.NewClient(apiUrl)
+	apiURL := fmt.Sprintf("https://api.crystallize.com/%s/catalogue", t.tenant)
+	graphqlClient := graphql.NewClient(apiURL)
 	req := graphql.NewRequest(CatalogueQuery)
 
 	// Query the catalogue API
-	var respData CatalogueResponse
+	var respData map[string]interface{}
 	if err := graphqlClient.Run(ctx, req, &respData); err != nil {
 		return err
 	}
 
-	// Normalise catalogue
-	catalogueItems := normaliseCatalogueItems(respData)
-	t.catalogueItems = catalogueItems
+	catalogue := respData["catalogue"].(map[string]interface{})
+	children := catalogue["children"].([]interface{})
 
-	fmt.Printf("Queried %d items\n", len(t.catalogueItems))
+	// Normalise catalogue
+	items, err := normaliseChildren(children)
+	if err != nil {
+		return err
+	}
+
+	t.items = items
+	fmt.Printf("Queried %d items\n", len(t.items))
 
 	return nil
 }
@@ -153,8 +223,8 @@ func (t *CatalogueBulkIndexTask) Execute(ctx context.Context) error {
 		return err
 	}
 
-	fmt.Printf("Indexing %d items\n", len(t.catalogueItems))
+	fmt.Printf("Indexing %d items\n", len(t.items))
 
 	// Bulk index the catalogue items
-	return indexService.BulkIndex(ctx, t.client, t.catalogueItems)
+	return indexService.BulkIndex(ctx, t.client, t.items)
 }

@@ -47,7 +47,7 @@ that performs an aggregate query on the indexed data.
 #### Running the Server
 
 ```sh
-go run main.go
+ELASTICSEARCH_NODE=YOUR_NODE_URL [ELASTICSEARCH_USER=YOUR_USER ELASTICSEARCH_PASS=YOUR_PASS] go run main.go
 ```
 
 #### `POST /api/index`
