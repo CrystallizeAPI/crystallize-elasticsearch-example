@@ -1,7 +1,9 @@
 package types
 
-// ElasticProduct represents a product as it is stored in elasticsearch. This
+import "github.com/CrystallizeAPI/crystallize-go-types/types"
+
+// ElasticProduct represents a product as it is stored in elasticsearch.
 type ElasticProduct struct {
-	Variant ProductVariant `json:"variant"`
-	Product Product        `json:"product"`
+	Variant types.ProductVariant `json:"variant"`
+	Product types.Product        `json:"product"`
 }

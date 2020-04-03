@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/types"
+	esTypes "github.com/CrystallizeAPI/crystallize-elasticsearch-example/types"
+	"github.com/CrystallizeAPI/crystallize-go-types/types"
 	"github.com/olivere/elastic/v7"
 )
 
@@ -82,7 +83,7 @@ func (i *IndexService) Index(ctx context.Context, client *elastic.Client, item t
 }
 
 // BulkIndex indexes CatalogueItems in bulk.
-func (i *IndexService) BulkIndex(ctx context.Context, client *elastic.Client, items []types.ElasticProduct) error {
+func (i *IndexService) BulkIndex(ctx context.Context, client *elastic.Client, items []esTypes.ElasticProduct) error {
 	// Build bulk index request
 	bulk := client.Bulk().Index(CatalogueIndex)
 	for _, item := range items {

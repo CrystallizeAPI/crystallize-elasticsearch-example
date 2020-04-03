@@ -5,11 +5,13 @@ import (
 	"fmt"
 )
 
+// Task represents a task to be performed.
 type Task interface {
 	Setup(ctx context.Context) error
 	Execute(ctx context.Context) error
 }
 
+// NewTask instantiates a new task using the `Task` interface.
 func NewTask(taskName string, tenant string) (Task, error) {
 	switch taskName {
 	case "catalogue-bulk-index":

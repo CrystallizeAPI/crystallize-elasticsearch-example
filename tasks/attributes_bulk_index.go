@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/service"
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/types"
+	"github.com/CrystallizeAPI/crystallize-elasticsearch-example/service"
+	"github.com/CrystallizeAPI/crystallize-go-types/types"
 	"github.com/machinebox/graphql"
 	"github.com/olivere/elastic/v7"
 )

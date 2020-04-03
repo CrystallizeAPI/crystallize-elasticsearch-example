@@ -9,6 +9,7 @@ import (
 // SearchService holds all of the necessary methods for searching an index.
 type SearchService struct{}
 
+// Search performs the provided search query and returns the result.
 func (s *SearchService) Search(ctx context.Context, client *elastic.Client, query *elastic.BoolQuery) ([]interface{}, error) {
 	searchResult, err := client.Search().
 		Index(CatalogueIndex).

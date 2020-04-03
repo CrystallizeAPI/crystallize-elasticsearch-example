@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/server"
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/tasks"
+	"github.com/CrystallizeAPI/crystallize-elasticsearch-example/server"
+	"github.com/CrystallizeAPI/crystallize-elasticsearch-example/tasks"
 )
 
 func runTask(taskName *string, tenant *string) error {

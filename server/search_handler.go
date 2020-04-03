@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/service"
+	"github.com/CrystallizeAPI/crystallize-elasticsearch-example/service"
 	"github.com/olivere/elastic/v7"
 )
 

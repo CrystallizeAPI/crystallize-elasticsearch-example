@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/service"
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/types"
+	"github.com/CrystallizeAPI/crystallize-elasticsearch-example/service"
+	"github.com/CrystallizeAPI/crystallize-go-types/types"
 )
 
 type Item struct {

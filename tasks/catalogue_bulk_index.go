@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/service"
-	"github.com/crystallizeapi/crystallize-elasticsearch-example/types"
+	"github.com/CrystallizeAPI/crystallize-elasticsearch-example/service"
+	esTypes "github.com/CrystallizeAPI/crystallize-elasticsearch-example/types"
+	"github.com/CrystallizeAPI/crystallize-go-types/types"
 	"github.com/machinebox/graphql"
 	"github.com/olivere/elastic/v7"
 )
 
 type CatalogueBulkIndexTask struct {
-	items  []types.ElasticProduct
+	items  []esTypes.ElasticProduct
 	client *elastic.Client
 	tenant string
 }
@@ -29,7 +30,7 @@ func NewCatalogueBulkIndexTask(tenant string) (*CatalogueBulkIndexTask, error) {
 	}
 
 	return &CatalogueBulkIndexTask{
-		items:  []types.ElasticProduct{},
+		items:  []esTypes.ElasticProduct{},
 		client: client,
 		tenant: tenant,
 	}, nil
@@ -125,8 +126,8 @@ func getImages(variant types.ProductVariant) *[]types.Image {
 	return nil
 }
 
-func normaliseChildren(children []interface{}) ([]types.ElasticProduct, error) {
-	var items []types.ElasticProduct
+func normaliseChildren(children []interface{}) ([]esTypes.ElasticProduct, error) {
+	var items []esTypes.ElasticProduct
 
 	for _, item := range children {
 		catalogueItem := item.(map[string]interface{})
@@ -152,7 +153,7 @@ func normaliseChildren(children []interface{}) ([]types.ElasticProduct, error) {
 				variant.Images = images
 				product.Variants = productVariants
 
-				elasticProduct := types.ElasticProduct{
+				elasticProduct := esTypes.ElasticProduct{
 					Variant: variant,
 					Product: product,
 				}
