@@ -23,9 +23,9 @@ type IndexService struct{}
 
 // CreateClient creates a new elastic client.
 func CreateClient() (*elastic.Client, error) {
-	url := os.Getenv("ELASTICSEARCH_NODE")
-	user := os.Getenv("ELASTICSEARCH_USER")
-	pass := os.Getenv("ELASTICSEARCH_PASS")
+	url := os.Getenv("ES_NODE")
+	user := os.Getenv("ES_USER")
+	pass := os.Getenv("ES_PASS")
 
 	return elastic.NewClient(
 		elastic.SetURL(url),

@@ -12,6 +12,8 @@ import (
 	"github.com/olivere/elastic/v7"
 )
 
+// CatalogueBulkIndexTask represents a task to index the catalogue of a
+// Crystallize store.
 type CatalogueBulkIndexTask struct {
 	items  []esTypes.ElasticProduct
 	client *elastic.Client
@@ -101,6 +103,9 @@ var CatalogueQuery = `
 	}
 `
 
+// Crystallize creates a bunch of different image variations on upload. To
+// improve performance we are just indexing a couple that could be used as
+// thumbnails in search results.
 func getImageVariants(image types.Image) []types.ImageVariant {
 	imageVariants := []types.ImageVariant{}
 
